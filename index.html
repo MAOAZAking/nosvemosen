@@ -142,7 +142,7 @@
       const seconds = Math.floor((diff / 1000) % 60);
       countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
       const totalStages = heartStages.length;
-      const totalSeconds = (targetDate - new Date("2025-05-01T00:00:00")) / 1000;
+      const totalSeconds = (targetDate - new Date("2025-08-01T00:00:00")) / 1000;
       const elapsedSeconds = (now - new Date("2025-05-01T00:00:00")) / 1000;
       const stage = Math.min(totalStages - 1, Math.floor((elapsedSeconds / totalSeconds) * totalStages));
       heartStages.forEach((h, i) => h.classList.remove("visible"));
