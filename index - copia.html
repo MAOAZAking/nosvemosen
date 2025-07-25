@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Para mi amor 💖</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: url('A_digital_illustration_captures_a_sky_during_sunse.png') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Segoe UI', sans-serif;
+            color: white;
+            overflow: hidden;
+        }
+
+        .pulsos {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .pulso {
+            position: absolute;
+            border: 2px solid rgba(255, 105, 180, 0.4);
+            border-radius: 50%;
+            animation: latido 2s ease-out infinite;
+        }
+
+        @keyframes latido {
+            0% {
+                transform: scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: scale(3.5);
+                opacity: 0;
+            }
+        }
+
+        .corazon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 180px;
+            z-index: 2;
+        }
+
+        .parte {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1.5s ease-in-out;
+        }
+
+        .visible {
+            opacity: 1 !important;
+        }
+
+        .contador {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 1.5em;
+            background-color: rgba(0,0,0,0.4);
+            padding: 10px 20px;
+            border-radius: 10px;
+            z-index: 3;
+        }
+
+        .mensaje-final {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 15px;
+            display: none;
+            z-index: 4;
+        }
+    </style>
+</head>
+<body>
+    <h1>YA CASI NOS VEMOS</h1>
+    <div class="pulsos" id="pulsos"></div>
+
+    <div class="corazon">
+        <img src="https://i.imgur.com/wLZ1xCt.png" class="parte" id="benda1">
+        <img src="https://i.imgur.com/W9Y1Oqg.png" class="parte" id="benda2">
+        <img src="https://i.imgur.com/FYV68nZ.png" class="parte" id="benda3">
+        <img src="https://i.imgur.com/L1zpxms.png" class="parte" id="benda4">
+        <img src="https://i.imgur.com/OL7YXcX.png" class="parte" id="curita1">
+        <img src="https://i.imgur.com/x7XZL1A.png" class="parte" id="curita2">
+        <img src="https://i.imgur.com/Y9s8TkV.png" class="parte" id="corazonLimpio">
+    </div>
+
+    <div class="contador" id="cuenta"></div>
+    <div class="mensaje-final" id="mensajeFinal">Este corazón fue reconstruido solo por ti 💗</div>
+
+    <script>
+        // Generar pulsos
+        function crearPulso() {
+            const pulso = document.createElement("div");
+            pulso.classList.add("pulso");
+            const size = Math.random() * 60 + 40;
+            pulso.style.width = size + "px";
+            pulso.style.height = size + "px";
+            pulso.style.top = Math.random() * 100 + "%";
+            pulso.style.left = Math.random() * 100 + "%";
+            document.getElementById("pulsos").appendChild(pulso);
+            setTimeout(() => pulso.remove(), 2000);
+        }
+
+        setInterval(crearPulso, 500);
+
+        // Mostrar por partes el corazón
+        const partes = ["benda1", "benda2", "benda3", "benda4", "curita1", "curita2", "corazonLimpio"];
+        let indice = 0;
+
+        function mostrarParte() {
+            if (indice < partes.length) {
+                document.getElementById(partes[indice]).classList.add("visible");
+                indice++;
+                setTimeout(mostrarParte, 3000);
+            }
+        }
+
+        mostrarParte();
+
+        // Cuenta regresiva
+        const fechaFinal = new Date("May 30, 2025 11:00:00").getTime();
+        const cuenta = document.getElementById("cuenta");
+        const mensaje = document.getElementById("mensajeFinal");
+
+        setInterval(() => {
+            const ahora = new Date().getTime();
+            const diferencia = fechaFinal - ahora;
+
+            if (diferencia <= 0) {
+                cuenta.style.display = "none";
+                mensaje.style.display = "block";
+                return;
+            }
+
+            const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+            const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+            const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+
+            cuenta.innerHTML = `⏳ Faltan ${dias}d ${horas}h ${minutos}m ${segundos}s`;
+        }, 1000);
+    </script>
+</body>
+</html>

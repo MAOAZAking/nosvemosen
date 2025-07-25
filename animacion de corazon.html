@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corazón Pixel a Pixel - Mitades Separadas</title>
+  <style>
+    body {
+      background-color: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      position: relative;
+      width: 300px;
+      height: 300px;
+    }
+
+    .pixel-grid {
+      display: grid;
+      grid-template-columns: repeat(20, 1fr);
+      grid-template-rows: repeat(20, 1fr);
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: transform 1s ease, opacity 1s ease;
+    }
+
+    .pixel {
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      background-color: #ff3366;
+      animation: pixel-appear 0.05s forwards;
+      box-shadow: 0 0 10px #ff0066;
+    }
+
+    @keyframes pixel-appear {
+      to {
+        opacity: 1;
+        box-shadow: 0 0 10px #ff0066;
+      }
+    }
+
+    .superior-border {
+      border-top: 1.5px solid black;
+    }
+
+    .inferiorr-border {
+        border-top: 1.5px solid black;
+      }
+
+    #left-grid {
+      transform: translateX(-50px);
+    }
+
+    #right-grid {
+      transform: translateX(50px);
+      opacity: 0;
+    }
+
+    .emoji-heart {
+      position: absolute;
+      top: -30px;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      font-size: 23rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      animation: emoji-fade 0.5s forwards 11s;
+    }
+
+    @keyframes emoji-fade {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .glow {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(255,51,102,0.8) 0%, rgba(255,51,102,0) 70%);
+      opacity: 0;
+      animation: glow-pulse 2s infinite 6s;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.6;
+        transform: scale(1.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="pixel-grid" id="left-grid"></div>
+    <div class="pixel-grid" id="right-grid"></div>
+    <div class="emoji-heart">❤️‍🩹</div>
+    <div class="glow"></div>
+  </div>
+
+  <script>
+    const heartMatrix = [
+      [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      [0,0,0,0,0,1,1,1,0,0,0,0,1,1,1,0,0,0,0,0],
+      [0,0,0,0,1,1,1,1,1,0,0,1,1,1,1,1,0,0,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+      [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+      [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+      [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+      [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+      [0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0],
+      [0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0]
+    ];
+
+    function createHalfPixels(gridId, startCol, endCol, startDelay) {
+      const grid = document.getElementById(gridId);
+      let delay = startDelay;
+
+      for (let y = 0; y < 20; y++) {
+        for (let x = startCol; x < endCol; x++) {
+          if (heartMatrix[y][x] === 1) {
+            const pixel = document.createElement('div');
+            pixel.className = 'pixel';
+            pixel.dataset.row = y;
+            pixel.dataset.col = x;
+            pixel.style.animationDelay = delay + 's';
+            pixel.style.gridColumn = (x + 1);
+            pixel.style.gridRow = (y + 1);
+            grid.appendChild(pixel);
+            delay += 0.02 + Math.random() * 0.01;
+          }
+        }
+      }
+    }
+
+    createHalfPixels('left-grid', 0, 10, 0.1);
+
+    setTimeout(() => {
+      const rightGrid = document.getElementById('right-grid');
+      rightGrid.style.opacity = '1';
+      createHalfPixels('right-grid', 10, 20, 0.1);
+    }, 3500);
+
+    setTimeout(() => {
+      document.getElementById('left-grid').style.transform = 'translateX(0)';
+      document.getElementById('right-grid').style.transform = 'translateX(0)';
+    }, 7000);
+
+    // Venda horizontal (filas 7 a 10)
+    setTimeout(() => {
+      const allPixels = Array.from(document.querySelectorAll('.pixel'));
+      const vendaRows = [7, 8, 9, 10];
+
+      vendaRows.forEach(row => {
+        const rowPixels = allPixels.filter(p => parseInt(p.dataset.row) === row);
+        rowPixels.sort((a, b) => parseInt(a.dataset.col) - parseInt(b.dataset.col));
+        rowPixels.forEach((pixel, index) => {
+          setTimeout(() => {
+            pixel.style.backgroundColor = '#ffffff';
+            pixel.style.boxShadow = '0 0 10px #ffffff';
+            pixel.classList.add('venda');
+            if (row === 7) pixel.classList.add('superior-border');
+          }, index * 50);
+        });
+      });
+    }, 7100);
+
+    // Venda diagonal
+    setTimeout(() => {
+      const allPixels = Array.from(document.querySelectorAll('.pixel'));
+      const diagonalPixels = allPixels.filter(pixel => {
+        const row = parseInt(pixel.dataset.row);
+        const col = parseInt(pixel.dataset.col);
+        return (
+          (row === 3 && col >= 11 && col <= 16) ||
+          (row === 4 && col >= 10 && col <= 17) ||
+          (row === 5 && col >= 9 && col <= 18) ||
+          (row === 6 && col >= 8 && col <= 19) ||
+          (row === 7 && col >= 8 && col <= 19) ||
+          (row === 8 && col >= 7 && col <= 18) ||
+          (row === 9 && col >= 6 && col <= 17) ||
+          (row === 10 && col >= 6 && col <= 16) ||
+          (row === 11 && col >= 5 && col <= 15)
+        );
+      });
+
+      diagonalPixels.sort((a, b) => parseInt(a.dataset.row) - parseInt(b.dataset.row));
+      const firstRow = Math.min(...diagonalPixels.map(p => parseInt(p.dataset.row)));
+
+      diagonalPixels.forEach((pixel, index) => {
+        setTimeout(() => {
+          pixel.style.backgroundColor = '#ffffff';
+          pixel.style.boxShadow = '0 0 10px #ffffff';
+          pixel.classList.add('venda');
+          if (parseInt(pixel.dataset.row) === firstRow) {
+            pixel.classList.add('superior-border');
+          }
+        }, index * 50);
+      });
+    }, 7700);
+
+    setTimeout(() => {
+        const leftGrid = document.getElementById('left-grid');
+        const rightGrid = document.getElementById('right-grid');
+        const allPixels = Array.from(document.querySelectorAll('.pixel'));
+      
+        allPixels.forEach((pixel, index) => {
+          pixel.style.transition = 'all 1s ease';
+          pixel.style.transform = 'scale(0.2) translate(50%, 50%)';
+          pixel.style.opacity = '0';
+        });
+      
+        leftGrid.style.transform = 'scale(0.8)';
+        rightGrid.style.transform = 'scale(0.8)';
+      }, 10500);
+      
+  </script>
+</body>
+</html>
