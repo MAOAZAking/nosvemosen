@@ -29,33 +29,14 @@
       padding: 10px 15px;
       border-radius: 10px;
     }
-    .heartbeat-line {
+    #pulseCanvas {
       position: absolute;
-      top: 50%;
+      top: 0;
+      left: 0;
       width: 100%;
-      height: 2px;
-      background: white;
-      overflow: hidden;
-    }
-    .pulse-wave {
-      position: absolute;
-      width: 200%;
       height: 100%;
-      background: repeating-linear-gradient(
-        to right,
-        transparent 0px 20px,
-        white 20px 30px,
-        transparent 30px 50px,
-        white 50px 55px,
-        transparent 55px 75px,
-        white 75px 80px,
-        transparent 80px 100px
-      );
-      animation: pulseMove 2s linear infinite;
-    }
-    @keyframes pulseMove {
-      from { left: 0; }
-      to { left: -100%; }
+      /* El canvas estará detrás del corazón pero sobre el fondo */
+      z-index: 1;
     }
     .heart-container {
       position: absolute;
@@ -105,7 +86,7 @@
 </head>
 <body>
   <h1>YA CASI NOS VEMOS</h1>
-  <div class="heartbeat-line"><div class="pulse-wave"></div></div>
+  <canvas id="pulseCanvas"></canvas>
   <div class="heart-container" id="heartContainer">
     <div class="heart-stage" id="stage1" style="background-image: url('heart_broken.png');"></div>
     <div class="heart-stage" id="stage2" style="background-image: url('heart_bandaged.png');"></div>
@@ -124,31 +105,135 @@
       document.getElementById("stage4")
     ];
     const heartContainer = document.getElementById("heartContainer");
-    const targetDate = new Date("2025-05-30T11:00:00");
+
+    // --- Nueva Lógica del Canvas para el Pulso ---
+    const canvas = document.getElementById('pulseCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let x = 0;
+    let lastY;
+    let pathIndex = 0;
+    let pulseSpeed = 1; // Píxeles por frame, empieza lento
+    let pulseAmplitude = 0.5; // Escala de la altura, empieza bajo
+
+    // Puntos que definen la forma de un latido (200 puntos en total)
+    const ekgPath = [].concat(
+        Array(70).fill(0), // Línea base
+        [2, 4, 5, 4, 2],   // Onda P (5)
+        Array(10).fill(0), // Segmento PR
+        [-5],              // Onda Q (1)
+        [10, 20, 30, 40, 50, 40, 30, 20, 10], // Onda R (9)
+        [-15, -20, -15],   // Onda S (3)
+        Array(15).fill(0), // Segmento ST
+        [5, 10, 12, 13, 12, 10, 5], // Onda T (7)
+        Array(80).fill(0)  // Línea base hasta completar 200 puntos
+    );
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        lastY = canvas.height / 2; // Reiniciar la posición Y
+    }
+
+    function drawPulse() {
+        requestAnimationFrame(drawPulse);
+
+        for (let i = 0; i < pulseSpeed; i++) {
+            const midY = canvas.height / 2;
+            const yOffset = ekgPath[pathIndex] * pulseAmplitude;
+            const currentY = midY - yOffset;
+
+            // 1. Borra la columna donde se va a dibujar para crear el efecto de movimiento
+            ctx.clearRect(x, 0, 3, canvas.height);
+
+            // 2. Dibuja el segmento de línea del pulso
+            ctx.beginPath();
+            ctx.moveTo(x - 1, lastY);
+            ctx.lineTo(x, currentY);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 3. Dibuja el punto brillante que "dibuja" la línea
+            ctx.beginPath();
+            ctx.arc(x, currentY, 3, 0, 2 * Math.PI);
+            ctx.fillStyle = '#fff';
+            ctx.shadowColor = 'hotpink';
+            ctx.shadowBlur = 15;
+            ctx.fill();
+            ctx.shadowBlur = 0; // Resetear sombra para no afectar otros dibujos
+
+            lastY = currentY;
+            x++;
+            pathIndex = (pathIndex + 1) % ekgPath.length;
+
+            // Cuando llega al final, vuelve al principio
+            if (x > canvas.width) {
+                x = 0;
+                lastY = midY - (ekgPath[pathIndex] * pulseAmplitude);
+            }
+        }
+    }
+
+    // Usamos números para crear la fecha y evitar problemas de formato.
+    // OJO: El mes es 0-indexado (0=Enero, 7=Agosto).
+    const targetDate = new Date(2025, 7, 21, 14, 37, 0);
+
+    // ¡Importante! La fecha de inicio para la animación debe ser en el pasado.
+    // Cámbiala por la fecha en que comenzó su cuenta regresiva.
+    // OJO: El mes es 0-indexado (0=Enero, 4=Mayo).
+    const startDate = new Date(2024, 4, 1, 0, 0, 0);
+    let countdownInterval; // Para poder detener el temporizador al final
+
     function updateCountdown() {
       const now = new Date();
       const diff = targetDate - now;
+
       if (diff <= 0) {
         countdownEl.textContent = "00d 00h 00m 00s";
         heartStages.forEach(stage => stage.classList.remove("visible"));
         heartStages[3].classList.add("visible");
         heartContainer.classList.add("heartbeat");
         finalMessage.classList.add("visible");
+        pulseSpeed = 15; // Velocidad máxima al final
+        pulseAmplitude = 1.8; // Amplitud máxima al final
+        if (countdownInterval) clearInterval(countdownInterval); // Detiene las actualizaciones
         return;
       }
+
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
       countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+
+      // --- Lógica corregida para la animación del corazón ---
       const totalStages = heartStages.length;
-      const totalSeconds = (targetDate - new Date("2025-08-01T00:00:00")) / 1000;
-      const elapsedSeconds = (now - new Date("2025-05-01T00:00:00")) / 1000;
-      const stage = Math.min(totalStages - 1, Math.floor((elapsedSeconds / totalSeconds) * totalStages));
+      const totalDuration = targetDate - startDate;
+      const elapsedDuration = now - startDate;
+      const progress = Math.max(0, elapsedDuration / totalDuration);
+      const stageIndex = Math.min(totalStages - 1, Math.floor(progress * totalStages));
+
       heartStages.forEach((h, i) => h.classList.remove("visible"));
-      heartStages[stage].classList.add("visible");
+      heartStages[stageIndex].classList.add("visible");
+
+      // --- Lógica para acelerar y aumentar el pulso del Canvas ---
+      const progressNormalized = Math.max(0, Math.min(1, progress)); // Asegurar que esté entre 0 y 1
+      
+      // Velocidad: de 1 (lento) a 10 (rápido)
+      const minSpeed = 1;
+      const maxSpeed = 10;
+      pulseSpeed = minSpeed + (maxSpeed - minSpeed) * progressNormalized;
+
+      // Amplitud: de 0.5 (bajo) a 1.5 (alto)
+      const minAmplitude = 0.5;
+      const maxAmplitude = 1.5;
+      pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * progressNormalized;
     }
-    setInterval(updateCountdown, 1000);
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas(); // Ajusta el canvas al tamaño inicial
+    drawPulse(); // Inicia la animación del canvas
+    countdownInterval = setInterval(updateCountdown, 1000);
     updateCountdown();
   </script>
 </body>
