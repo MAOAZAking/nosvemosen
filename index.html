@@ -100,7 +100,7 @@
     <div class="heart-stage" id="stage4" style="background-image: url('new_heart_full.png'); transform: translateY(-50px);"></div>
   </div>
   <div id="countdown">Cargando...</div>
-  <div id="final-message">esperame, ya casi llego amor a tus brazos</div>
+  <div id="final-message">Esperame amor, ya casi llega el momento <br> de poder estar en tus brazos <br> 🥹 </div>
   <script>
     const canvas = document.getElementById('pulseCanvas');
     const ctx = canvas.getContext('2d');
@@ -193,69 +193,94 @@
         // pathIndex no avanza para no alterar el pulso aún
         return;  // Aquí podrías quitar el return para evitar errores, o dejarlo
       } else {
-        // Modo pulso: empieza la animación normal
+          // Modo pulso: empieza la animación normal
+          const elapsed = now - pulseStartDate;
+          const phaseDuration = (targetDate - pulseStartDate) / 5;
 
-        // Si pathIndex está en 0, inicialízalo para evitar salto visual:
-        if (pathIndex === 0) {
-          // Para suavizar la transición, iguala lastY a la posición del pulso en pathIndex
-          lastY = midY - (ekgPath[0] * pulseAmplitude);
+          let maxPeak = 10;  // default
+          if (elapsed < phaseDuration) {
+            maxPeak = 25;
+            pulseSpeed = 1;
+          } else if (elapsed < 2 * phaseDuration) {
+            maxPeak = 50;
+            pulseSpeed = 1;
+          } else if (elapsed < 3 * phaseDuration) {
+            maxPeak = 75;
+            pulseSpeed = 1;
+          } else if (elapsed < 4 * phaseDuration) {
+            maxPeak = 125;
+            pulseSpeed = 1;
+          } else {
+            maxPeak = 125;
+            pulseSpeed = 10 + Math.min(15, ((now - (pulseStartDate.getTime() + 4 * phaseDuration)) / (targetDate - (pulseStartDate.getTime() + 4 * phaseDuration))) * 15);
+          }
+
+          // Escalar el valor de ekgPath al rango máximo deseado
+          const baseValue = ekgPath[pathIndex] || 0;
+          let scaledOffset = 0;
+
+          if (baseValue !== 0) {
+            const maxRawValue = 50; // el valor más alto que aparece en ekgPath
+            const scaleFactor = maxPeak / maxRawValue;
+
+            // Aplica algo de aleatoriedad dentro del rango permitido
+            scaledOffset = baseValue * scaleFactor * (0.8 + Math.random() * 0.4);
+          }
+
+          const midY = canvas.height / 2;
+          const currentY = midY - scaledOffset;
+
+          // Dibuja línea principal (blanca)
+          ctx.beginPath();
+          ctx.moveTo(x - 1, lastY);
+          ctx.lineTo(x, currentY);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Línea roja
+          ctx.beginPath();
+          ctx.moveTo(x - 3, lastY + 2);
+          ctx.lineTo(x - 2, currentY + 2);
+          ctx.strokeStyle = 'rgba(255, 120, 28, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // Línea fucsia
+          ctx.beginPath();
+          ctx.moveTo(x - 5, lastY + 4);
+          ctx.lineTo(x - 4, currentY + 4);
+          ctx.strokeStyle = 'rgba(240, 84, 247, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          lastY = currentY;
+          x++;
+          pathIndex = (pathIndex + 1) % ekgPath.length;
+          if (x > canvas.width) x = 0;
         }
-
-        // Toma valor del pulso con algo de aleatoriedad
-        let baseOffset = ekgPath[pathIndex] || 0;
-        if (baseOffset !== 0) {
-          baseOffset *= (0.8 + Math.random() * 0.6);
-        }
-
-        const yOffset = baseOffset * pulseAmplitude;
-        const currentY = midY - yOffset;
-
-        // === Línea blanca principal ===
-        ctx.beginPath();
-        ctx.moveTo(x - 1, lastY);
-        ctx.lineTo(x, currentY);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // === Línea roja (2px más abajo) ===
-        ctx.beginPath();
-        ctx.moveTo(x - 3, lastY + 2);
-        ctx.lineTo(x - 2, currentY + 2);
-        ctx.strokeStyle = 'rgba(255, 120, 28, 0.9)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-        // === Línea fucsia/lila (4px más abajo) ===
-        ctx.beginPath();
-        ctx.moveTo(x - 5, lastY + 4);
-        ctx.lineTo(x - 4, currentY + 4);
-        ctx.strokeStyle = 'rgba(240, 84, 247, 0.9)';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-
-
-        // Puedes agregar las otras líneas y puntos si quieres igual que antes...
-
-        lastY = currentY;
-        x++;
-        pathIndex = (pathIndex + 1) % ekgPath.length;
-
-        if (x > canvas.width) x = 0;
-      }
     }
 
 
 
     // Usamos números para crear la fecha y evitar problemas de formato.
     // OJO: El mes es 0-indexado (0=Enero, 7=Agosto).
-    const targetDate = new Date(2025, 7, 21, 14, 37, 0);
+    const targetDate = new Date(2025, 7, 20, 16, 10, 0);
 
     // ¡Importante! La fecha de inicio para la animación debe ser en el pasado.
     // Cámbiala por la fecha en que comenzó su cuenta regresiva.
     // OJO: El mes es 0-indexado (0=Enero, 4=Mayo).
     const startDate = new Date(2024, 4, 1, 0, 0, 0);
     const pulseStartDate = new Date(2025, 7, 20, 15, 54, 0);
+
+    const totalPulseDuration = targetDate - pulseStartDate;
+    const segmentDuration = totalPulseDuration / 5;
+
+    const phase1End = new Date(pulseStartDate.getTime() + segmentDuration * 1);
+    const phase2End = new Date(pulseStartDate.getTime() + segmentDuration * 2);
+    const phase3End = new Date(pulseStartDate.getTime() + segmentDuration * 3);
+    const phase4End = new Date(pulseStartDate.getTime() + segmentDuration * 4);
+
 
     let countdownInterval; // Para poder detener el temporizador al final
 
