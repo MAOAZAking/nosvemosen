@@ -40,12 +40,13 @@
     }
     .heart-container {
       position: absolute;
-      top: 50%;
+      top: 55%;
       left: 50%;
       transform: translate(-50%, -50%);
       z-index: 2;
-      width: 100px;
-      height: 100px;
+      /* Aumentamos el tamaño para que todos los corazones sean más grandes */
+      width: 200px;
+      height: 200px;
     }
     .heart-stage {
       position: absolute;
@@ -69,9 +70,13 @@
     }
     #final-message {
       position: absolute;
-      top: 40%;
-      left: 55%;
-      transform: translateY(-50%);
+      /* Centrado horizontalmente y posicionado sobre el corazón final */
+      width: 90%;
+      max-width: 500px; /* Evita que sea demasiado ancho en pantallas grandes */
+      top: calc(50% - 180px); /* Colocado 30px sobre el borde superior del corazón final */
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
       color: white;
       font-size: 1.5em;
       font-weight: bold;
@@ -82,15 +87,6 @@
     #final-message.visible {
       opacity: 1;
     }
-
-    .heartbeat{
-      animation: beat 1s infinite;
-    }
-
-    @keyframes beat {
-      0%, 100% { transform: translate(-50%, -50%) scale(1); }
-      50% { transform: translate(-50%, -50%) scale(1.2); }
-    }
   </style>
 </head>
 <body>
@@ -100,7 +96,8 @@
     <div class="heart-stage" id="stage1" style="background-image: url('heart_broken.png');"></div>
     <div class="heart-stage" id="stage2" style="background-image: url('heart_bandaged.png');"></div>
     <div class="heart-stage" id="stage3" style="background-image: url('heart_healing.png');"></div>
-    <div class="heart-stage" id="stage4" style="background-image: url('heart_full.png');"></div>
+    <!-- El corazón final usa el tamaño del contenedor y se desplaza 50px hacia arriba -->
+    <div class="heart-stage" id="stage4" style="background-image: url('new_heart_full.png'); transform: translateY(-50px);"></div>
   </div>
   <div id="countdown">Cargando...</div>
   <div id="final-message">esperame, ya casi llego amor a tus brazos</div>
@@ -285,7 +282,6 @@
     countdownInterval = setInterval(updateCountdown, 1000);
     updateCountdown();
     // Este es el fragmento clave
-    heartContainer.classList.add("heartbeat");
   </script>
 </body>
 </html>
