@@ -82,6 +82,15 @@
     #final-message.visible {
       opacity: 1;
     }
+
+    .heartbeat{
+      animation: beat 1s infinite;
+    }
+
+    @keyframes beat {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      50% { transform: translate(-50%, -50%) scale(1.2); }
+    }
   </style>
 </head>
 <body>
@@ -106,74 +115,114 @@
     ];
     const heartContainer = document.getElementById("heartContainer");
 
-    // --- Nueva Lógica del Canvas para el Pulso ---
+    // --- Nueva Lógica del Canvas para el Pulso --- 
     const canvas = document.getElementById('pulseCanvas');
     const ctx = canvas.getContext('2d');
 
     let x = 0;
     let lastY;
     let pathIndex = 0;
-    let pulseSpeed = 1; // Píxeles por frame, empieza lento
-    let pulseAmplitude = 0.5; // Escala de la altura, empieza bajo
+    let pulseSpeed = 1; 
+    let pulseAmplitude = 0.5; 
 
     // Puntos que definen la forma de un latido (200 puntos en total)
     const ekgPath = [].concat(
-        Array(70).fill(0), // Línea base
-        [2, 4, 5, 4, 2],   // Onda P (5)
-        Array(10).fill(0), // Segmento PR
-        [-5],              // Onda Q (1)
-        [10, 20, 30, 40, 50, 40, 30, 20, 10], // Onda R (9)
-        [-15, -20, -15],   // Onda S (3)
-        Array(15).fill(0), // Segmento ST
-        [5, 10, 12, 13, 12, 10, 5], // Onda T (7)
-        Array(80).fill(0)  // Línea base hasta completar 200 puntos
+        Array(70).fill(0), 
+        [2, 4, 5, 4, 2],   
+        Array(10).fill(0), 
+        [-5],              
+        [10, 20, 30, 40, 50, 40, 30, 20, 10], 
+        [-15, -20, -15],   
+        Array(15).fill(0), 
+        [5, 10, 12, 13, 12, 10, 5], 
+        Array(80).fill(0)  
     );
 
     function resizeCanvas() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        lastY = canvas.height / 2; // Reiniciar la posición Y
+        lastY = canvas.height / 2; 
     }
 
     function drawPulse() {
-        requestAnimationFrame(drawPulse);
+      requestAnimationFrame(drawPulse);
 
-        for (let i = 0; i < pulseSpeed; i++) {
-            const midY = canvas.height / 2;
-            const yOffset = ekgPath[pathIndex] * pulseAmplitude;
-            const currentY = midY - yOffset;
+      for (let i = 0; i < pulseSpeed; i++) {
+          const midY = canvas.height / 2;
 
-            // 1. Borra la columna donde se va a dibujar para crear el efecto de movimiento
-            ctx.clearRect(x, 0, 3, canvas.height);
+          // Tomamos el valor base del ekg
+          let baseOffset = ekgPath[pathIndex];
 
-            // 2. Dibuja el segmento de línea del pulso
-            ctx.beginPath();
-            ctx.moveTo(x - 1, lastY);
-            ctx.lineTo(x, currentY);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.lineWidth = 2;
-            ctx.stroke();
+          // Si el punto es distinto de cero, le añadimos aleatoriedad
+          if (baseOffset !== 0) {
+              let randomFactor = 0.8 + Math.random() * 0.6; 
+              baseOffset *= randomFactor; 
+          }
 
-            // 3. Dibuja el punto brillante que "dibuja" la línea
-            ctx.beginPath();
-            ctx.arc(x, currentY, 3, 0, 2 * Math.PI);
-            ctx.fillStyle = '#fff';
-            ctx.shadowColor = 'hotpink';
-            ctx.shadowBlur = 15;
-            ctx.fill();
-            ctx.shadowBlur = 0; // Resetear sombra para no afectar otros dibujos
+          const yOffset = baseOffset * pulseAmplitude;
+          const currentY = midY - yOffset;
 
-            lastY = currentY;
-            x++;
-            pathIndex = (pathIndex + 1) % ekgPath.length;
+          // 1. Limpiamos la columna que se va a dibujar
+          ctx.clearRect(x, 0, 3, canvas.height);
 
-            // Cuando llega al final, vuelve al principio
-            if (x > canvas.width) {
-                x = 0;
-                lastY = midY - (ekgPath[pathIndex] * pulseAmplitude);
-            }
-        }
-    }
+          // === Línea blanca principal ===
+          ctx.beginPath();
+          ctx.moveTo(x - 1, lastY);
+          ctx.lineTo(x, currentY);
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // === Línea roja duplicada (2px más abajo) ===
+          ctx.beginPath();
+          ctx.moveTo(x - 3, lastY + 2);
+          ctx.lineTo(x - 2, currentY + 2);
+          ctx.strokeStyle = 'rgba(255, 120, 28, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+                    // === Línea roja duplicada (4px más abajo) ===
+          ctx.beginPath();
+          ctx.moveTo(x - 5, lastY + 4);
+          ctx.lineTo(x - 4, currentY + 4);
+          ctx.strokeStyle = 'rgba(240, 84, 247, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+
+          // 2. Dibujar puntos luminosos SOLO en el último paso del frame
+          if (i === pulseSpeed - 1) {
+              // Punto blanco brillante
+              ctx.beginPath();
+              ctx.arc(x, currentY, 3, 0, 2 * Math.PI);
+              ctx.fillStyle = '#fff';
+              ctx.shadowColor = 'hotpink';
+              ctx.shadowBlur = 15;
+              ctx.fill();
+              ctx.shadowBlur = 0;
+
+              // Punto rojo brillante (20px más abajo)
+              ctx.beginPath();
+              ctx.arc(x - 2, currentY + 2, 3, 0, 2 * Math.PI);
+              ctx.fillStyle = 'red';
+              ctx.shadowColor = 'red';
+              ctx.shadowBlur = 15;
+              ctx.fill();
+              ctx.shadowBlur = 0;
+          }
+
+          // Actualizar estado
+          lastY = currentY;
+          x++;
+          pathIndex = (pathIndex + 1) % ekgPath.length;
+
+          if (x > canvas.width) {
+              x = 0;
+              lastY = midY - (ekgPath[pathIndex] * pulseAmplitude);
+          }
+      }
+  }
+
+
 
     // Usamos números para crear la fecha y evitar problemas de formato.
     // OJO: El mes es 0-indexado (0=Enero, 7=Agosto).
@@ -195,8 +244,8 @@
         heartStages[3].classList.add("visible");
         heartContainer.classList.add("heartbeat");
         finalMessage.classList.add("visible");
-        pulseSpeed = 15; // Velocidad máxima al final
-        pulseAmplitude = 1.8; // Amplitud máxima al final
+        pulseSpeed = 25; // Velocidad máxima al final
+        pulseAmplitude = 3; // Amplitud máxima al final
         if (countdownInterval) clearInterval(countdownInterval); // Detiene las actualizaciones
         return;
       }
@@ -222,12 +271,12 @@
       
       // Velocidad: de 1 (lento) a 10 (rápido)
       const minSpeed = 1;
-      const maxSpeed = 10;
+      const maxSpeed = 25;
       pulseSpeed = minSpeed + (maxSpeed - minSpeed) * progressNormalized;
 
       // Amplitud: de 0.5 (bajo) a 1.5 (alto)
       const minAmplitude = 0.5;
-      const maxAmplitude = 1.5;
+      const maxAmplitude = 2.5;
       pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * progressNormalized;
     }
     window.addEventListener('resize', resizeCanvas);
@@ -235,6 +284,8 @@
     drawPulse(); // Inicia la animación del canvas
     countdownInterval = setInterval(updateCountdown, 1000);
     updateCountdown();
+    // Este es el fragmento clave
+    heartContainer.classList.add("heartbeat");
   </script>
 </body>
 </html>
