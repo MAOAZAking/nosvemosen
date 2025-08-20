@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Corazón Pixel a Pixel - Animación Completa</title>
+    <style>
+        body {
+            background-color: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+        }
+        .pixel-grid {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+        }
+        .pixel {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: #ff3366;
+            box-shadow: 0 0 4px #ff0066;
+            opacity: 0;
+            transition: transform 1s ease-in-out, opacity 1s ease-in-out, background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .pixel.start-left {
+            transform: translateX(-200px);
+        }
+        .pixel.start-right {
+            transform: translateX(200px);
+        }
+        .pixel.visible {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        .pixel.venda {
+            background-color: #ffffff;
+            box-shadow: 0 0 5px #ffffff;
+        }
+        /* Efectos visuales */
+        .emoji-heart {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 23rem;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 10;
+            animation: emoji-fade 1s forwards 10s;
+        }
+        @keyframes emoji-fade {
+            from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+        .glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,51,102,0.8) 0%, rgba(255,51,102,0) 70%);
+            opacity: 0;
+            pointer-events: none;
+            animation: glow-pulse 2s infinite 6s;
+        }
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1); }
+            50% { opacity: 0.6; transform: translate(-50%, -50%) scale(1.1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="pixel-grid" id="heart-grid"></div>
+        <div class="emoji-heart">💖</div>
+        <div class="glow"></div>
+    </div>
+    <script>
+        const heartMatrix = [
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+            [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+            [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+            [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+            [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+            [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+            [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+            [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+            [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        ];
+
+        const heartMatrixRows = heartMatrix.length;
+        const heartMatrixCols = heartMatrix[0].length;
+        const pixelSize = 10;
+        const animationDelayPerPixel = 7;
+        const grid = document.getElementById('heart-grid');
+        const leftHalfPixels = heartMatrix.reduce((sum, row) => sum + row.slice(0, Math.floor(heartMatrixCols / 2)).filter(p => p === 1).length, 0);
+        const rightHalfPixels = heartMatrix.reduce((sum, row) => sum + row.slice(Math.floor(heartMatrixCols / 2)).filter(p => p === 1).length, 0);
+        const pauseBetweenHalves = 500;
+        
+        // Calcula la duración total de toda la animación de creación del corazón
+        const totalAnimationDuration = (leftHalfPixels * animationDelayPerPixel) + pauseBetweenHalves + (rightHalfPixels * animationDelayPerPixel);
+
+        function createHeart() {
+            let leftSideDelay = 0;
+            const rightSideStartDelay = (leftHalfPixels * animationDelayPerPixel) + pauseBetweenHalves;
+            
+            function drawLeftHalf() {
+                for (let y = 0; y < heartMatrixRows; y++) {
+                    for (let x = 0; x < Math.floor(heartMatrixCols / 2); x++) {
+                        if (heartMatrix[y][x] === 1) {
+                            setTimeout(() => {
+                                const pixel = document.createElement('div');
+                                pixel.className = 'pixel start-left';
+                                pixel.dataset.row = y;
+                                pixel.dataset.col = x;
+                                pixel.style.top = `${y * pixelSize}px`;
+                                pixel.style.left = `${x * pixelSize}px`;
+                                grid.appendChild(pixel);
+                                setTimeout(() => {
+                                    pixel.classList.add('visible');
+                                }, 50);
+                            }, leftSideDelay);
+                            leftSideDelay += animationDelayPerPixel;
+                        }
+                    }
+                }
+            }
+
+            function drawRightHalf() {
+                let rightSideDelay = 0;
+                for (let y = 0; y < heartMatrixRows; y++) {
+                    for (let x = Math.floor(heartMatrixCols / 2); x < heartMatrixCols; x++) {
+                        if (heartMatrix[y][x] === 1) {
+                            setTimeout(() => {
+                                const pixel = document.createElement('div');
+                                pixel.className = 'pixel start-right';
+                                pixel.dataset.row = y;
+                                pixel.dataset.col = x;
+                                pixel.style.top = `${y * pixelSize}px`;
+                                pixel.style.left = `${x * pixelSize}px`;
+                                grid.appendChild(pixel);
+                                setTimeout(() => {
+                                    pixel.classList.add('visible');
+                                }, 50);
+                            }, rightSideDelay);
+                            rightSideDelay += animationDelayPerPixel;
+                        }
+                    }
+                }
+            }
+
+            drawLeftHalf();
+            setTimeout(drawRightHalf, rightSideStartDelay);
+
+            // Se llama a applyEffects después de que toda la animación de creación del corazón haya terminado
+            setTimeout(applyEffects, totalAnimationDuration);
+        }
+
+        function applyEffects() {
+            const effectsStartDelay = 2000;
+            setTimeout(() => {
+                const allPixels = Array.from(document.querySelectorAll('.pixel'));
+                const vendaRows = [14, 15, 16, 17, 18, 19, 20];
+                let vendaDelay = 0;
+                vendaRows.forEach(row => {
+                    const rowPixels = allPixels.filter(p => parseInt(p.dataset.row) === row);
+                    rowPixels.sort((a, b) => parseInt(a.dataset.col) - parseInt(b.dataset.col));
+                    rowPixels.forEach(pixel => {
+                        setTimeout(() => {
+                            pixel.classList.add('venda');
+                        }, vendaDelay);
+                        vendaDelay += 10;
+                    });
+                });
+            }, effectsStartDelay);
+            setTimeout(() => {
+                const allPixels = Array.from(document.querySelectorAll('.pixel'));
+                const diagonalPixels = allPixels.filter(pixel => {
+                    const row = parseInt(pixel.dataset.row);
+                    const col = parseInt(pixel.dataset.col);
+                    return (
+                        (row >= 10 && row <= 22) &&
+                        (col >= 20 && col <= 39) &&
+                        (col - row > 10)
+                    );
+                });
+                diagonalPixels.sort((a, b) => parseInt(a.dataset.row) - parseInt(b.dataset.col));
+                let diagonalDelay = 0;
+                diagonalPixels.forEach(pixel => {
+                    setTimeout(() => {
+                        pixel.classList.add('venda');
+                    }, diagonalDelay);
+                    diagonalDelay += 10;
+                });
+            }, effectsStartDelay + 1000);
+            setTimeout(() => {
+                const allPixels = document.querySelectorAll('.pixel');
+                allPixels.forEach(pixel => {
+                    pixel.style.transition = 'all 0.5s ease';
+                    pixel.style.transform = `translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px) scale(0.2)`;
+                    pixel.style.opacity = '0';
+                });
+            }, effectsStartDelay + 3500);
+        }
+        createHeart();
+    </script>
+</body>
+</html>
