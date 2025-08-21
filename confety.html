@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confeti Animado</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+        }
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 15px;
+            background-color: red;
+            opacity: 0.8;
+            transform-origin: left top;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0); }
+            100% { transform: translateY(100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="confetti-container" id="confetti"></div>
+    <script>
+        function createConfettiPiece() {
+            const confetti = document.createElement("div");
+            confetti.classList.add("confetti-piece");
+            
+            const colors = ["#f00", "#0f0", "#00f", "#ff0", "#f0f", "#0ff"];
+            confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            
+            confetti.style.left = Math.random() * 100 + "vw";
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + "s";
+            confetti.style.width = Math.random() * 10 + 5 + "px";
+            confetti.style.height = Math.random() * 15 + 10 + "px";
+            
+            document.getElementById("confetti").appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.remove();
+            }, 5000);
+        }
+        
+        setInterval(createConfettiPiece, 100);
+    </script>
+</body>
+</html>
