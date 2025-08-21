@@ -3,8 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="icon" type="image/png" href="new_heart_full.png">
-
   <title>YA CASI NOS VEMOS</title>
   <style>
     body {
@@ -88,37 +86,27 @@
     }
     #final-message.visible {
       opacity: 1;
-      transition: opacity 0.5s ease;
     }
     /*MENSAJE CUANDO EL CONTADOR LLEGUE A 0*/
     #mensaje-contador-0 {
       position: absolute;
+      /* Centrado horizontalmente y posicionado sobre el corazón final */
       width: 90%;
-      max-width: 500px;
-      top: calc(50% - 202px);
+      max-width: 500px; /* Evita que sea demasiado ancho en pantallas grandes */
+      top: calc(50% - 180px); /* Colocado 30px sobre el borde superior del corazón final */
       left: 50%;
       transform: translateX(-50%);
       text-align: center;
-      color: #fff;
+      color: white;
       font-size: 1.5em;
       font-weight: bold;
       opacity: 0;
       transition: opacity 2s ease;
-
-      /* Estilo de iluminación tipo neón */
-      text-shadow:
-        0 0 4px rgba(255, 0, 255, 0.9),   /* cerca: intenso */
-        0 0 5px rgba(255, 0, 255, 0.6),
-        0 0 7px rgba(255, 0, 255, 0.4),
-        0 0 9px rgba(255, 0, 255, 0.25),
-        0 0 11px rgba(255, 0, 255, 0.1);   /* lejos: más suave */
+      text-shadow: 2px 2px 5px black;
     }
-
     #mensaje-contador-0.visible {
       opacity: 1;
-      transition: opacity 0.5s ease;
     }
-
     /* Confeti CSS */
     .confetti-container {
       position: fixed;
@@ -160,7 +148,7 @@
   </div>
   <div id="countdown">Cargando...</div>
   <div id="final-message">Esperame amor, ya casi llega el momento <br> de poder estar en tus brazos <br> 🥹 </div>
-  <div id="mensaje-contador-0">Este corazón fue recontruido PARA TI 🥰<br> BABY PUIDALO PLIS <br> 🥺 <br> 👉🏽 👈🏽 </div>
+  <div id="mensaje-contador-0">Esperame amor, ya casi llega el momento <br> de poder estar en tus brazos <br> 🥹 </div>
   <script>
     let confettiTriggered = false; // Bandera para evitar que se dispare varias veces
     const canvas = document.getElementById('pulseCanvas');
@@ -174,7 +162,6 @@
 
     const countdownEl = document.getElementById("countdown");
     const finalMessage = document.getElementById("final-message");
-    const contador0 = document.getElementById("mensaje-contador-0");
     const heartStages = [
       document.getElementById("stage1"),
       document.getElementById("stage2"),
@@ -327,7 +314,7 @@
 
     // Usamos números para crear la fecha y evitar problemas de formato.
     // OJO: El mes es 0-indexado (0=Enero, 7=Agosto).
-    const targetDate = new Date(2025, 7, 21, 14, 37, 0);
+    const targetDate = new Date(2025, 7, 20, 22, 7, 0);
 
     // ¡Importante! La fecha de inicio para la animación debe ser en el pasado.
     // Cámbiala por la fecha en que comenzó su cuenta regresiva.
@@ -350,105 +337,76 @@
       const now = new Date();
       const diff = targetDate - now;
 
-      // Lógica para calcular la duración transcurrida y el progreso hacia el final
       const elapsedDuration = now - startDate;
       const totalDuration = targetDate - startDate;
       const progressToFinal = Math.max(0, elapsedDuration / totalDuration);
 
-      // Lógica del pulso, calcular el progreso del latido
       const pulsePhaseDuration = targetDate - pulseStartDate;
       const pulseElapsed = now - pulseStartDate;
       const pulseProgress = Math.max(0, Math.min(1, pulseElapsed / pulsePhaseDuration));
 
-      // Lógica para cuando el contador ha llegado a cero
       if (diff <= 0) {
-        countdownEl.textContent = "00d 00h 00m 00s"; // Muestra el tiempo final
+        countdownEl.textContent = "00d 00h 00m 00s"; // Muestra el tiempo final (00d 00h 00m 00s)
         heartStages.forEach(stage => stage.classList.remove("visible"));
         heartStages[3].classList.add("visible"); // Muestra el último corazón
-        heartContainer.classList.add("heartbeat"); // Da el efecto de "latido"
+        heartContainer.classList.add("heartbeat"); // Da el efecto de "latido" al corazón
+        finalMessage.classList.add("visible"); // Muestra el mensaje final
+        pulseSpeed = 300; // Establece la velocidad del pulso al máximo ya que el tiempo se cumplio
 
-        finalMessage.classList.remove("visible");
-        contador0.classList.add("visible");
-        contador0.classList.add("heartbeat");
-
-
-
-
-        // Iniciar confeti cuando el contador llegue a cero
+        // Llamamos a la función para iniciar el confeti cuando el contador llegue a cero
         if (!confettiTriggered) {
           startConfetti(); // Inicia el confeti
-          confettiTriggered = true; // Marca que ya se ha disparado el confeti
+          confettiTriggered = true; // Marca que el confeti ya ha sido disparado
         }
 
-        // Control de la animación del corazón cuando el tiempo se acaba
-        pulseSpeed = 300; // Pulso más rápido cuando se alcanza el final
+        // Antes de las 2:45 PM, sin pulso (línea recta)
+        if (now < pulseStartDate) {
+          pulseSpeed = 1;
+          pulseAmplitude = 0;
+        } else {
+          // A partir de las 2:45 PM, aumenta velocidad y amplitud según pulseProgress
+          const minSpeed = 1;
+          const maxSpeed = 50;
+          pulseSpeed = minSpeed + (maxSpeed - minSpeed) * pulseProgress;
 
-        if (countdownInterval) clearInterval(countdownInterval); // Detiene el contador
-        return; // Termina la función cuando la cuenta atrás se haya completado
-      } else if (diff > 2400000) {
-        // Si el tiempo restante es menor o igual a 40 segundos, muestra el mensaje final
-        finalMessage.classList.remove("visible");
-        contador0.classList.remove("visible");
-      } else {
-        // Si aún hay tiempo, oculta el mensaje final
-        finalMessage.classList.add("visible");
-        finalMessage.classList.add("heartbeat");
-        contador0.classList.remove("visible");
+            // Ajustamos la amplitud también (si lo deseas)
+            const minAmplitude = 0.5;
+            const maxAmplitude = 2.5;
+            pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * (1 - progressRemaining);
+        }
 
+        if (countdownInterval) clearInterval(countdownInterval); // Detiene las actualizaciones
+        return;
       }
 
-      // Cálculo del tiempo restante para mostrar en formato "00d 00h 00m 00s"
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
       countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
-      // Lógica de animación de las etapas del corazón (etapas visibles)
+      // --- Lógica corregida para la animación del corazón ---
       const totalStages = heartStages.length;
-      const progress = Math.max(0, elapsedDuration / totalDuration); // Progreso de la cuenta atrás
+      const progress = Math.max(0, elapsedDuration / totalDuration);
       const stageIndex = Math.min(totalStages - 1, Math.floor(progress * totalStages));
 
       heartStages.forEach((h, i) => h.classList.remove("visible"));
-      heartStages[stageIndex].classList.add("visible"); // Muestra la etapa correspondiente
+      heartStages[stageIndex].classList.add("visible");
 
-      // Lógica para acelerar la animación y pulso del Canvas
-      const progressNormalized = Math.max(0, Math.min(1, progress)); // Asegura que el progreso esté entre 0 y 1
-
-      // Lógica para controlar la velocidad del pulso
+      // --- Lógica para acelerar y aumentar el pulso del Canvas ---
+      const progressNormalized = Math.max(0, Math.min(1, progress)); // Asegurar que esté entre 0 y 1
+      
+      // Velocidad: de 1 (lento) a 10 (rápido)
       const minSpeed = 1;
       const maxSpeed = 50;
-      // Ajusta la velocidad en función del progreso restante
-      pulseSpeed = minSpeed + (maxSpeed - minSpeed) * (1 - progressToFinal * 5); 
-      console.log("pulseSpeed: ", pulseSpeed);  // Verifica en la consola que el valor de pulseSpeed cambia
+        // Aquí es donde se ajusta la velocidad: cuanto menos tiempo quede, más rápido será el pulso
+        pulseSpeed = minSpeed + (maxSpeed - minSpeed) * (1 - progressRemaining);
 
-      // Lógica para ajustar la amplitud del pulso
+      // Amplitud: de 0.5 (bajo) a 1.5 (alto)
       const minAmplitude = 0.5;
       const maxAmplitude = 2.5;
-      pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * (1 - progressToFinal); // Aumenta la amplitud del latido según el progreso
-
-      // Aplicar la animación del corazón con los valores ajustados de velocidad y amplitud
-      if (pulseSpeed && typeof updateHeartAnimation === "function") {
-        updateHeartAnimation(pulseSpeed, pulseAmplitude);  // Asegúrate de que esta función use los valores de pulseSpeed y pulseAmplitude
-      }
-
+      pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * progressNormalized;
     }
-
-    function updateHeartAnimation(pulseSpeed, pulseAmplitude) {
-      // Ejemplo con un canvas donde el latido del corazón cambia la velocidad de la animación
-      if (canvasContext) {
-        // Aquí se usa pulseSpeed y pulseAmplitude para cambiar la velocidad de la animación
-        canvasContext.clearRect(0, 0, canvas.width, canvas.height);  // Limpiar el canvas
-        
-        // La lógica de animación aquí puede depender de pulseSpeed y pulseAmplitude
-        const heartScale = Math.sin(Date.now() / pulseSpeed) * pulseAmplitude;
-        
-        // Dibujar el corazón con el latido calculado
-        drawHeart(heartScale); // Función que dibuja el corazón y ajusta su tamaño
-      }
-    }
-
-
     window.addEventListener('resize', resizeCanvas);
     resizeCanvas(); // Ajusta el canvas al tamaño inicial
     drawPulse(); // Inicia la animación del canvas
