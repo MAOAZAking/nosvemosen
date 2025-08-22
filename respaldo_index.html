@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" type="image/png" href="new_heart_full.png">
+
   <title>YA CASI NOS VEMOS</title>
   <style>
     body {
@@ -64,6 +66,18 @@
     .heartbeat {
       animation: beat 1s infinite;
     }
+    #pixelHeartContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 400px;
+      height: 400px;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+/* Incluye los estilos ya definidos de tu segundo código: .pixel, .pixel.visible, .emoji-heart, .glow, etc. */
+
     @keyframes beat {
       0%, 100% { transform: translate(-50%, -50%) scale(1); }
       50% { transform: translate(-50%, -50%) scale(1.2); }
@@ -86,27 +100,37 @@
     }
     #final-message.visible {
       opacity: 1;
+      transition: opacity 0.5s ease;
     }
     /*MENSAJE CUANDO EL CONTADOR LLEGUE A 0*/
     #mensaje-contador-0 {
       position: absolute;
-      /* Centrado horizontalmente y posicionado sobre el corazón final */
       width: 90%;
-      max-width: 500px; /* Evita que sea demasiado ancho en pantallas grandes */
-      top: calc(50% - 180px); /* Colocado 30px sobre el borde superior del corazón final */
+      max-width: 500px;
+      top: calc(50% - 202px);
       left: 50%;
       transform: translateX(-50%);
       text-align: center;
-      color: white;
+      color: #fff;
       font-size: 1.5em;
       font-weight: bold;
       opacity: 0;
       transition: opacity 2s ease;
-      text-shadow: 2px 2px 5px black;
+
+      /* Estilo de iluminación tipo neón */
+      text-shadow:
+        0 0 4px rgba(255, 0, 255, 0.9),   /* cerca: intenso */
+        0 0 5px rgba(255, 0, 255, 0.6),
+        0 0 7px rgba(255, 0, 255, 0.4),
+        0 0 9px rgba(255, 0, 255, 0.25),
+        0 0 11px rgba(255, 0, 255, 0.1);   /* lejos: más suave */
     }
+
     #mensaje-contador-0.visible {
       opacity: 1;
+      transition: opacity 0.5s ease;
     }
+
     /* Confeti CSS */
     .confetti-container {
       position: fixed;
@@ -139,6 +163,13 @@
 
   <h1>YA CASI NOS VEMOS</h1>
   <canvas id="pulseCanvas"></canvas>
+  <!-- Contenedor del corazón pixelado animado -->
+  <div class="container" id="pixelHeartContainer" style="display: none;">
+    <div class="pixel-grid" id="heart-grid"></div>
+    <div class="emoji-heart">❤️</div>
+    <div class="glow"></div>
+  </div>
+
   <div class="heart-container" id="heartContainer">
     <div class="heart-stage" id="stage1" style="background-image: url('heart_broken.png');"></div>
     <div class="heart-stage" id="stage2" style="background-image: url('heart_bandaged.png');"></div>
@@ -148,7 +179,7 @@
   </div>
   <div id="countdown">Cargando...</div>
   <div id="final-message">Esperame amor, ya casi llega el momento <br> de poder estar en tus brazos <br> 🥹 </div>
-  <div id="mensaje-contador-0">Esperame amor, ya casi llega el momento <br> de poder estar en tus brazos <br> 🥹 </div>
+  <div id="mensaje-contador-0">Este corazón fue recontruido PARA TI 🥰<br> BABY PUIDALO PLIS <br> 🥺 <br> 👉🏽 👈🏽 </div>
   <script>
     let confettiTriggered = false; // Bandera para evitar que se dispare varias veces
     const canvas = document.getElementById('pulseCanvas');
@@ -162,13 +193,7 @@
 
     const countdownEl = document.getElementById("countdown");
     const finalMessage = document.getElementById("final-message");
-    const heartStages = [
-      document.getElementById("stage1"),
-      document.getElementById("stage2"),
-      document.getElementById("stage3"),
-      document.getElementById("stage4")
-    ];
-    const heartContainer = document.getElementById("heartContainer");
+    const contador0 = document.getElementById("mensaje-contador-0");
     const maxPoints = window.innerWidth;
 
     let x = 0;
@@ -312,15 +337,20 @@
 
 
 
+
+
     // Usamos números para crear la fecha y evitar problemas de formato.
     // OJO: El mes es 0-indexado (0=Enero, 7=Agosto).
-    const targetDate = new Date(2025, 7, 20, 22, 7, 0);
+    const targetDate = new Date(2025, 7, 21, 14, 37, 0);
 
     // ¡Importante! La fecha de inicio para la animación debe ser en el pasado.
     // Cámbiala por la fecha en que comenzó su cuenta regresiva.
     // OJO: El mes es 0-indexado (0=Enero, 4=Mayo).
     const startDate = new Date(2024, 4, 1, 0, 0, 0);
     const pulseStartDate = new Date(2025, 7, 20, 16, 55, 0);
+    //
+    const comienzocorazonpixelapixel = new Date(2025, 7, 21, 9, 0, 0);
+
 
     const totalPulseDuration = targetDate - pulseStartDate;
     const segmentDuration = totalPulseDuration / 5;
@@ -333,122 +363,276 @@
 
     let countdownInterval; // Para poder detener el temporizador al final
 
+    const totalPixels = heartMatrix.flat().filter(p => p === 1).length;
+
+    function drawPixelHeart(ctx, startX, startY, pixelSize, heartMatrix, color) {
+      for (let y = 0; y < heartMatrix.length; y++) {
+        for (let x = 0; x < heartMatrix[y].length; x++) {
+          if (heartMatrix[y][x] === 1) {
+            ctx.fillStyle = color;
+            ctx.fillRect(startX + x * pixelSize, startY + y * pixelSize, pixelSize, pixelSize);
+          }
+        }
+      }
+    }
+
+    // --- configuraciones y referencias ---
+    const pixelHeartContainer = document.getElementById('pixelHeartContainer');
+    const grid = document.getElementById('heart-grid');
+    const heartContainer = document.getElementById('heartContainer');
+    const heartStages = Array.from(heartContainer.children);
+
+    const heartMatrix = [ /* tu matriz completa y simétrica aquí */ ];
+    const rows = heartMatrix.length;
+    const cols = heartMatrix[0].length;
+    const pixelSize = 10;
+
+    // Helper: Crear un pixel
+    function createPixel(x, y) {
+      const pixel = document.createElement('div');
+      pixel.className = 'pixel';
+      pixel.style.top = `${y * pixelSize}px`;
+      pixel.style.left = `${x * pixelSize}px`;
+      grid.appendChild(pixel);
+      setTimeout(() => pixel.classList.add('visible'), 50);
+    }
+
+    // Secuencia de fases con delays definidos
+    function startHeartSequence() {
+      pixelHeartContainer.style.display = 'block';
+      grid.innerHTML = '';
+
+      // 1. Creación pixel a pixel
+      let count = 0;
+      heartMatrix.forEach((row, y) =>
+        row.forEach((val, x) => {
+          if (val === 1) {
+            setTimeout(() => createPixel(x, y), count * 30);
+            count++;
+          }
+        })
+      );
+
+      const tCreation = count * 30 + 500;
+
+      // 2. Vendas por filas
+      setTimeout(() => {
+        const heartMatrix = [
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+          [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+          [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+          [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+          [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+          [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+          [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+          [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+          [0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0],
+          [0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0],
+          [0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0],
+          [0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0],
+          [0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0],
+          [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+          [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        ];
+        let d = 0;
+        vendaRows.forEach(y => {
+          for (let x = 0; x < cols; x++) {
+            if (heartMatrix[y][x] === 1) {
+              setTimeout(() => {
+                const p = Array.from(grid.children).find(el => +el.style.top.split('px')[0] === y * pixelSize && +el.style.left.split('px')[0] === x * pixelSize);
+                if (p) p.classList.add('venda');
+              }, d);
+              d += 20;
+            }
+          }
+        });
+      }, tCreation);
+
+      const tVendas = tCreation + 1000;
+
+      // 3. Emoji transitions
+      setTimeout(() => {
+        grid.innerHTML = '';
+        pixelHeartContainer.innerHTML = '<div class="emoji-heart">🤕</div><div class="glow"></div>';
+        setTimeout(() => {
+          pixelHeartContainer.innerHTML = '<div class="emoji-heart">❤️</div><div class="glow"></div>';
+          setTimeout(() => {
+            pixelHeartContainer.innerHTML = '<div class="emoji-heart">💖</div><div class="glow"></div>';
+            setTimeout(() => {
+              // Pasar al PNG final
+              pixelHeartContainer.style.display = 'none';
+              heartStages.forEach(h => h.classList.remove('visible'));
+              document.getElementById('stage4').classList.add('visible');
+              heartContainer.classList.add('heartbeat');
+            }, 800);
+          }, 800);
+        }, 800);
+      }, tVendas);
+    }
+
+    // Llamar cuando la página esté lista y según tu lógica de tiempo (e.g., pulseStartDate)
+    startHeartSequence();
+
+
+
     function updateCountdown() {
       const now = new Date();
       const diff = targetDate - now;
 
+      // Lógica para calcular la duración transcurrida y el progreso hacia el final
       const elapsedDuration = now - startDate;
       const totalDuration = targetDate - startDate;
       const progressToFinal = Math.max(0, elapsedDuration / totalDuration);
 
+      // Lógica del pulso, calcular el progreso del latido
       const pulsePhaseDuration = targetDate - pulseStartDate;
       const pulseElapsed = now - pulseStartDate;
       const pulseProgress = Math.max(0, Math.min(1, pulseElapsed / pulsePhaseDuration));
 
+      // Lógica para cuando el contador ha llegado a cero
       if (diff <= 0) {
-        countdownEl.textContent = "00d 00h 00m 00s"; // Muestra el tiempo final (00d 00h 00m 00s)
+        countdownEl.textContent = "00d 00h 00m 00s"; // Muestra el tiempo final
         heartStages.forEach(stage => stage.classList.remove("visible"));
         heartStages[3].classList.add("visible"); // Muestra el último corazón
-        heartContainer.classList.add("heartbeat"); // Da el efecto de "latido" al corazón
-        finalMessage.classList.add("visible"); // Muestra el mensaje final
-        pulseSpeed = 300; // Establece la velocidad del pulso al máximo ya que el tiempo se cumplio
+        heartContainer.classList.add("heartbeat"); // Da el efecto de "latido"
 
-        // Llamamos a la función para iniciar el confeti cuando el contador llegue a cero
+        finalMessage.classList.remove("visible");
+        contador0.classList.add("visible");
+        contador0.classList.add("heartbeat");
+
+
+
+
+        // Iniciar confeti cuando el contador llegue a cero
         if (!confettiTriggered) {
           startConfetti(); // Inicia el confeti
-          confettiTriggered = true; // Marca que el confeti ya ha sido disparado
+          confettiTriggered = true; // Marca que ya se ha disparado el confeti
         }
 
-        // Antes de las 2:45 PM, sin pulso (línea recta)
-        if (now < pulseStartDate) {
-          pulseSpeed = 1;
-          pulseAmplitude = 0;
-        } else {
-          // A partir de las 2:45 PM, aumenta velocidad y amplitud según pulseProgress
-          const minSpeed = 1;
-          const maxSpeed = 50;
-          pulseSpeed = minSpeed + (maxSpeed - minSpeed) * pulseProgress;
+        // Control de la animación del corazón cuando el tiempo se acaba
+        pulseSpeed = 300; // Pulso más rápido cuando se alcanza el final
 
-            // Ajustamos la amplitud también (si lo deseas)
-            const minAmplitude = 0.5;
-            const maxAmplitude = 2.5;
-            pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * (1 - progressRemaining);
-        }
+        if (countdownInterval) clearInterval(countdownInterval); // Detiene el contador
+        return; // Termina la función cuando la cuenta atrás se haya completado
+      } else if (diff > 2400000) {
+        // Si el tiempo restante es menor o igual a 40 segundos, muestra el mensaje final
+        finalMessage.classList.remove("visible");
+        contador0.classList.remove("visible");
+      } else {
+        // Si aún hay tiempo, oculta el mensaje final
+        finalMessage.classList.add("visible");
+        finalMessage.classList.add("heartbeat");
+        contador0.classList.remove("visible");
 
-        if (countdownInterval) clearInterval(countdownInterval); // Detiene las actualizaciones
-        return;
       }
 
+      // Cálculo del tiempo restante para mostrar en formato "00d 00h 00m 00s"
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
       countdownEl.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
 
-      // --- Lógica corregida para la animación del corazón ---
+      // Lógica de animación de las etapas del corazón (etapas visibles)
       const totalStages = heartStages.length;
-      const progress = Math.max(0, elapsedDuration / totalDuration);
+      const progress = Math.max(0, elapsedDuration / totalDuration); // Progreso de la cuenta atrás
       const stageIndex = Math.min(totalStages - 1, Math.floor(progress * totalStages));
 
       heartStages.forEach((h, i) => h.classList.remove("visible"));
-      heartStages[stageIndex].classList.add("visible");
+      heartStages[stageIndex].classList.add("visible"); // Muestra la etapa correspondiente
 
-      // --- Lógica para acelerar y aumentar el pulso del Canvas ---
-      const progressNormalized = Math.max(0, Math.min(1, progress)); // Asegurar que esté entre 0 y 1
-      
-      // Velocidad: de 1 (lento) a 10 (rápido)
+      // Lógica para acelerar la animación y pulso del Canvas
+      const progressNormalized = Math.max(0, Math.min(1, progress)); // Asegura que el progreso esté entre 0 y 1
+
+      // Lógica para controlar la velocidad del pulso
       const minSpeed = 1;
       const maxSpeed = 50;
-        // Aquí es donde se ajusta la velocidad: cuanto menos tiempo quede, más rápido será el pulso
-        pulseSpeed = minSpeed + (maxSpeed - minSpeed) * (1 - progressRemaining);
+      // Ajusta la velocidad en función del progreso restante
+      pulseSpeed = minSpeed + (maxSpeed - minSpeed) * (1 - progressToFinal * 5); 
+      console.log("pulseSpeed: ", pulseSpeed);  // Verifica en la consola que el valor de pulseSpeed cambia
 
-      // Amplitud: de 0.5 (bajo) a 1.5 (alto)
+      // Lógica para ajustar la amplitud del pulso
       const minAmplitude = 0.5;
       const maxAmplitude = 2.5;
-      pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * progressNormalized;
-    }
-    window.addEventListener('resize', resizeCanvas);
-    resizeCanvas(); // Ajusta el canvas al tamaño inicial
-    drawPulse(); // Inicia la animación del canvas
-    countdownInterval = setInterval(updateCountdown, 1000);
-    updateCountdown();
-    // Este es el fragmento clave
-    // Función para crear las piezas de confeti
-    // Función para generar colores aleatorios
-    function getRandomColor() {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
+      pulseAmplitude = minAmplitude + (maxAmplitude - minAmplitude) * (1 - progressToFinal); // Aumenta la amplitud del latido según el progreso
+
+      // Aplicar la animación del corazón con los valores ajustados de velocidad y amplitud
+      if (pulseSpeed && typeof updateHeartAnimation === "function") {
+        updateHeartAnimation(pulseSpeed, pulseAmplitude);  // Asegúrate de que esta función use los valores de pulseSpeed y pulseAmplitude
       }
-      return color;
+
     }
 
-    // Función para crear las piezas de confeti
-    function createConfettiPiece() {
-      const confetti = document.createElement("div");
-      confetti.classList.add("confetti-piece");
-
-      // Asigna un color aleatorio a cada pieza de confeti
-      confetti.style.backgroundColor = getRandomColor();
-
-      confetti.style.left = Math.random() * 100 + "vw";
-      confetti.style.animationDuration = (Math.random() * 2 + 2) + "s";
-      confetti.style.width = Math.random() * 10 + 5 + "px";
-      confetti.style.height = Math.random() * 15 + 10 + "px";
-
-      document.getElementById("confetti").appendChild(confetti);
-
-      setTimeout(() => {
-        confetti.remove();
-      }, 5000);
+    function updateHeartAnimation(pulseSpeed, pulseAmplitude) {
+      // Ejemplo con un canvas donde el latido del corazón cambia la velocidad de la animación
+      if (canvasContext) {
+        // Aquí se usa pulseSpeed y pulseAmplitude para cambiar la velocidad de la animación
+        canvasContext.clearRect(0, 0, canvas.width, canvas.height);  // Limpiar el canvas
+        
+        // La lógica de animación aquí puede depender de pulseSpeed y pulseAmplitude
+        const heartScale = Math.sin(Date.now() / pulseSpeed) * pulseAmplitude;
+        
+        // Dibujar el corazón con el latido calculado
+        drawHeart(heartScale); // Función que dibuja el corazón y ajusta su tamaño
+      }
     }
 
 
-    // Función para iniciar el efecto de confeti
-    function startConfetti() {
-      setInterval(createConfettiPiece, 100); // Crear piezas de confeti cada 100ms
-    }
+    window.addEventListener('load', function () {
+  const yesBtn = document.getElementById('yesBtn');
+  const noBtn = document.getElementById('noBtn');
+  const mensajeFinal = document.getElementById('mensajeFinal');
+  const btnFinal = document.getElementById('btnFinal');
+
+  // Validamos que los elementos existen antes de usarlos
+  if (yesBtn && noBtn && mensajeFinal && btnFinal) {
+    yesBtn.addEventListener('click', function () {
+      confetti();
+      showMessage();
+    });
+
+    noBtn.addEventListener('mouseover', function () {
+      moveButton();
+    });
+
+    btnFinal.addEventListener('click', function () {
+      mensajeFinal.innerHTML = 'Yo también 😘';
+      mensajeFinal.style.fontSize = '24px';
+      mensajeFinal.style.color = '#ff66a3';
+      mensajeFinal.style.fontWeight = 'bold';
+      mensajeFinal.style.marginTop = '20px';
+    });
+  } else {
+    console.warn('Uno o más elementos no se encontraron en el DOM.');
+  }
+});
+
+
 
   </script>
 </body>

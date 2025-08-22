@@ -66,6 +66,18 @@
     .heartbeat {
       animation: beat 1s infinite;
     }
+    #pixelHeartContainer {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 400px;
+      height: 400px;
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+/* Incluye los estilos ya definidos de tu segundo código: .pixel, .pixel.visible, .emoji-heart, .glow, etc. */
+
     @keyframes beat {
       0%, 100% { transform: translate(-50%, -50%) scale(1); }
       50% { transform: translate(-50%, -50%) scale(1.2); }
@@ -151,6 +163,13 @@
 
   <h1>YA CASI NOS VEMOS</h1>
   <canvas id="pulseCanvas"></canvas>
+  <!-- Contenedor del corazón pixelado animado -->
+  <div class="container" id="pixelHeartContainer" style="display: none;">
+    <div class="pixel-grid" id="heart-grid"></div>
+    <div class="emoji-heart">❤️</div>
+    <div class="glow"></div>
+  </div>
+
   <div class="heart-container" id="heartContainer">
     <div class="heart-stage" id="stage1" style="background-image: url('heart_broken.png');"></div>
     <div class="heart-stage" id="stage2" style="background-image: url('heart_bandaged.png');"></div>
@@ -334,6 +353,10 @@
     // OJO: El mes es 0-indexado (0=Enero, 4=Mayo).
     const startDate = new Date(2024, 4, 1, 0, 0, 0);
     const pulseStartDate = new Date(2025, 7, 20, 16, 55, 0);
+    //
+    const comienzocorazonpixelapixel = new Date(2025, 7, 21, 9, 0, 0);
+
+    
 
     const totalPulseDuration = targetDate - pulseStartDate;
     const segmentDuration = totalPulseDuration / 5;
